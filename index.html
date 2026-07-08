@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>エイトリ　きずなっぷ進捗管理</title>
+<title>エイトリ　きずなっぷ進捗管理 category fixed</title>
 <style>
 :root{
   --bg:#f6f7fb; --surface:#fff; --surface2:#f2f4f8; --text:#1f2937; --muted:#667085;
@@ -101,14 +101,14 @@ button,.file-label,input,select{ touch-action:manipulation; }
 
 
 
-/* v3.3 single-role compact category column */
+/* v3.4 single-role layout fixes */
 .category-chip{
   display:inline-flex;
   align-items:center;
   justify-content:center;
   max-width:100%;
   min-height:22px;
-  padding:3px 6px;
+  padding:3px 7px;
   border:1px solid #d8dee8;
   border-radius:999px;
   background:#eef0f4;
@@ -126,57 +126,69 @@ table.single-person-table{
 }
 table.single-person-table th.cat,
 table.single-person-table td.cat{
-  width:46px;
-  min-width:46px;
-  max-width:46px;
-  padding-left:3px;
-  padding-right:3px;
+  width:var(--sticky2);
+  min-width:var(--sticky2);
+  max-width:var(--sticky2);
+  left:var(--sticky1);
+  padding-left:6px;
+  padding-right:6px;
   text-align:center;
 }
 table.single-person-table th.cond,
 table.single-person-table td.cond{
-  left:calc(var(--sticky1) + 46px);
+  left:calc(var(--sticky1) + var(--sticky2));
 }
 table.single-person-table .category-chip{
-  width:38px;
-  height:auto;
-  min-height:24px;
-  padding:4px 2px;
-  border-radius:9px;
-  font-size:9px;
-  letter-spacing:-.04em;
-  writing-mode:vertical-rl;
+  width:auto;
+  max-width:100%;
+  min-height:22px;
+  padding:3px 6px;
+  border-radius:999px;
+  font-size:10px;
+  letter-spacing:-.03em;
+  writing-mode:horizontal-tb;
   text-orientation:mixed;
-  white-space:normal;
+  white-space:nowrap;
   opacity:.82;
 }
 table.single-person-table .cat-head-label{
   display:inline-block;
-  font-size:9px;
-  letter-spacing:-.08em;
-  color:#98a2b3;
-  transform:scale(.88);
-  transform-origin:center;
+  font-size:10px;
+  letter-spacing:-.04em;
+  color:#667085;
+}
+.switch input[type="checkbox"]{
+  width:18px!important;
+  height:18px!important;
+  min-height:0!important;
+  flex:0 0 auto;
+  margin:0;
 }
 @media(max-width:700px){
+  .switch{
+    display:flex!important;
+    align-items:center;
+    justify-content:flex-start;
+    gap:8px;
+    padding:0 12px!important;
+    white-space:nowrap;
+    line-height:1;
+  }
   table.single-person-table{
-    --sticky2:46px;
-    --sticky3:172px;
-    min-width:calc(var(--sticky1) + 46px + 172px + 64px);
+    min-width:calc(var(--sticky1) + var(--sticky2) + 165px + 64px);
   }
   table.single-person-table td.cat,
   table.single-person-table th.cat{
-    left:var(--sticky1);
-    width:46px;
-    min-width:46px;
-    max-width:46px;
+    width:var(--sticky2);
+    min-width:var(--sticky2);
+    max-width:var(--sticky2);
   }
   table.single-person-table td.cond,
   table.single-person-table th.cond{
-    left:calc(var(--sticky1) + 46px);
-    width:172px;
-    min-width:172px;
-    max-width:172px;
+    left:calc(var(--sticky1) + var(--sticky2));
+    width:165px;
+    min-width:165px;
+    max-width:165px;
   }
   table.single-person-table .person-col,
   table.single-person-table .person-head{
@@ -187,26 +199,18 @@ table.single-person-table .cat-head-label{
 }
 @media(max-width:380px){
   table.single-person-table{
-    --sticky2:42px;
-    --sticky3:154px;
-    min-width:calc(var(--sticky1) + 42px + 154px + 64px);
-  }
-  table.single-person-table td.cat,
-  table.single-person-table th.cat{
-    width:42px;
-    min-width:42px;
-    max-width:42px;
+    min-width:calc(var(--sticky1) + var(--sticky2) + 145px + 64px);
   }
   table.single-person-table td.cond,
   table.single-person-table th.cond{
-    left:calc(var(--sticky1) + 42px);
-    width:154px;
-    min-width:154px;
-    max-width:154px;
+    left:calc(var(--sticky1) + var(--sticky2));
+    width:145px;
+    min-width:145px;
+    max-width:145px;
   }
   table.single-person-table .category-chip{
-    width:34px;
-    font-size:8px;
+    font-size:9px;
+    padding:3px 5px;
   }
 }
 
