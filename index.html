@@ -60,19 +60,19 @@ main{max-width:1500px;margin:18px auto;padding:0 18px 60px}.toolbar{display:grid
   <section class="card" id="frontCard">
     <div class="rolebar" id="rolebar"></div>
     <div class="table-wrap"><table id="tracker"></table></div>
-    <div class="hint">Tip：前台ではチェックのみ編集できます。角色名を押すとその角色だけ表示。カテゴリ・条件・報酬はデータ管理で編集できます。</div>
+    <div class="hint">Tip：各区長/コンダクターの名前ボタンをクリックすると、その区長/コンダクターのデータのみ表示されるようになります。</div>
   </section>
 
   <section class="card hidden" id="adminCard">
     <div class="admin-tools">
-      <button class="primary" id="saveAdminBtn">保存して前台に反映</button>
+      <button class="primary" id="saveAdminBtn">保存して反映</button>
       <button id="addStepBtn">STEP追加</button>
-      <button class="danger" id="resetRowsBtn">現在分頁の表示資料を初期化</button>
+      <button class="danger" id="resetRowsBtn">資料を初期化</button>
       <span class="spacer"></span>
       <span class="muted">データ管理：カテゴリ・条件・報酬をまとめて編集できます。（簡易パスワード保護）</span>
     </div>
     <div class="table-wrap"><table id="adminTracker"></table></div>
-    <div class="hint">公開網域使用時，後台修改會儲存在目前裝置的瀏覽器。要搬到其他裝置，請用 JSON書き出し／読み込み。</div>
+    <div class="hint">別の端末でデータを反映させたい場合、JSON書き出し／読み込みをご利用ください。</div>
   </section>
 </main>
 <aside class="drawer" id="drawer">
@@ -339,7 +339,7 @@ document.getElementById('addStepBtn').onclick=()=>{
   save(); render();
 };
 document.getElementById('resetRowsBtn').onclick=()=>{
-  if(!confirm('現在分頁のカテゴリ・条件・報酬を初期状態に戻しますか？チェック状態は残します。')) return;
+  if(!confirm('現時点のカテゴリ・条件・報酬を初期状態に戻しますか？チェック状態は残します。')) return;
   const baseRows = BASE[group].rows;
   rows().forEach(r=>{
     const b = baseRows.find(x=>x.step===r.step);
