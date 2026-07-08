@@ -1,0 +1,798 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>エイトリ　きずなっぷ進捗管理</title>
+<style>
+:root{
+  --bg:#f6f7fb; --surface:#fff; --surface2:#f2f4f8; --text:#1f2937; --muted:#667085;
+  --line:#e5e7eb; --primary:#3147ff; --ok:#16a34a; --warn:#f59e0b; --shadow:0 10px 30px rgba(16,24,40,.10);
+  --sticky1:52px; --sticky2:90px; --sticky3:210px; --sticky4:0px;
+}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP","Noto Sans TC",sans-serif;}
+header{position:sticky;top:0;z-index:50;background:rgba(246,247,251,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.header-inner{display:flex;gap:14px;align-items:center;justify-content:space-between;padding:14px 18px;max-width:1500px;margin:auto}
+h1{font-size:20px;margin:0;font-weight:800;letter-spacing:.02em}.sub{font-size:12px;color:var(--muted);margin-top:2px}.brand{display:flex;flex-direction:column}.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;position:relative}.menu-toggle{display:inline-flex}
+button,.file-label{border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:999px;padding:8px 12px;font-weight:700;cursor:pointer;box-shadow:0 1px 1px rgba(0,0,0,.04);font-size:13px}
+button:hover,.file-label:hover{border-color:#bfc7d5}.primary{background:var(--primary);color:white;border-color:var(--primary)}.danger{color:#b42318}.tabs{display:flex;gap:10px;max-width:1500px;margin:0 auto;padding:0 18px 12px}
+.tab{padding:10px 18px;border-radius:14px;background:var(--surface);border:1px solid var(--line);font-weight:800}.tab.active{background:#111827;color:white;border-color:#111827}.tab small{font-weight:600;opacity:.8;margin-left:6px}
+main{max-width:1500px;margin:18px auto;padding:0 18px 60px}.toolbar{display:grid;grid-template-columns:1fr 180px 180px auto;gap:10px;margin-bottom:12px}.bulk-actions{display:flex;gap:8px;flex-wrap:wrap}.bulk-actions button{height:42px}.toolbar input,.toolbar select{height:42px;border:1px solid var(--line);border-radius:14px;background:var(--surface);padding:0 12px;font-size:14px}.switch{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:0 12px;font-size:13px;font-weight:700;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);overflow:hidden}.rolebar{display:flex;gap:8px;padding:12px;border-bottom:1px solid var(--line);overflow:auto;background:linear-gradient(#fff,#fafbfc)}
+.chip{white-space:nowrap}.chip.active{background:#111827;color:#fff}.chip .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px;border:1px solid rgba(0,0,0,.15)}
+.table-wrap{overflow:auto;max-height:calc(100vh - 260px)}table{border-collapse:separate;border-spacing:0;min-width:720px;width:max-content;background:white}th,td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:10px 12px;vertical-align:middle;background:white}th{position:sticky;top:0;z-index:20;background:#f8fafc;font-size:13px;text-align:left;white-space:nowrap}.row-complete td{background:#f0fdf4}.row-complete .editable{color:#37624a}td.step,th.step{position:sticky;left:0;z-index:25;width:var(--sticky1);min-width:var(--sticky1);text-align:center;font-weight:800}td.cat,th.cat{position:sticky;left:var(--sticky1);z-index:25;width:var(--sticky2);min-width:var(--sticky2)}td.cond,th.cond{position:sticky;left:calc(var(--sticky1) + var(--sticky2));z-index:25;width:var(--sticky3);min-width:var(--sticky3);max-width:var(--sticky3)}th.step,th.cat,th.cond{z-index:35}.editable{outline:none;border-radius:8px;min-height:24px}.editable.readonly{cursor:default}.editable:focus{background:#fff7ed;box-shadow:0 0 0 2px #fed7aa inset}.person-col{text-align:center;min-width:64px}.person-head{text-align:center;font-weight:900;color:#111827}.person-head .name{display:block}.person-head .pct{font-size:11px;color:#344054;background:rgba(255,255,255,.6);border-radius:999px;padding:2px 6px;display:inline-block;margin-top:4px}.check{width:22px;height:22px;accent-color:var(--ok);cursor:pointer}.muted{color:var(--muted)}.pill{display:inline-block;background:#eef2ff;color:#3730a3;border-radius:999px;padding:2px 8px;font-weight:700;font-size:12px}
+.drawer{position:fixed;right:18px;top:82px;width:min(430px,calc(100vw - 36px));max-height:calc(100vh - 120px);overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);z-index:80;padding:18px;display:none}.drawer.open{display:block}.drawer h2{margin:0 0 12px;font-size:18px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}.stat{background:var(--surface2);border-radius:16px;padding:12px}.stat b{display:block;font-size:22px}.stat span{font-size:12px;color:var(--muted)}.bar{height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden}.bar>i{display:block;height:100%;background:var(--ok);width:0}.dash-row{display:grid;grid-template-columns:1fr 70px;gap:10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line);font-size:13px}.cat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}.cat-card{background:#fafafa;border:1px solid var(--line);border-radius:14px;padding:10px;font-size:13px}.cat-card b{display:block;margin-bottom:4px}#importFile{display:none}.hint{padding:10px 12px;color:var(--muted);font-size:12px;border-top:1px solid var(--line);background:#fafafa}.empty{padding:40px;text-align:center;color:var(--muted)}
+@media(max-width:900px){.toolbar{grid-template-columns:1fr 1fr}.bulk-actions{grid-column:1/-1}.actions{gap:6px}.header-inner{align-items:flex-start;flex-direction:column}.table-wrap{max-height:calc(100vh - 330px)}:root{--sticky3:260px;--sticky4:180px}.person-col{min-width:92px}.stats{grid-template-columns:1fr}.cat-grid{grid-template-columns:1fr}}
+
+.admin-tools{display:flex;gap:8px;flex-wrap:wrap;padding:12px;border-bottom:1px solid var(--line);background:linear-gradient(#fff,#fafbfc)}
+.admin-tools .spacer{flex:1}
+.admin-input,.admin-textarea{width:100%;border:1px solid var(--line);border-radius:12px;background:#fff;padding:8px 10px;font:inherit;font-size:13px}
+.admin-textarea{min-height:46px;resize:vertical;line-height:1.45}
+.admin-actions{text-align:center;min-width:90px}
+.hidden{display:none!important}
+.content-text{font-size:12px;line-height:1.35;white-space:normal;word-break:break-word}.admin-combo{display:flex;flex-direction:column;gap:6px}.admin-combo label{font-size:11px;font-weight:800;color:var(--muted)}
+
+
+/* Mobile usability update */
+html{ -webkit-text-size-adjust:100%; }
+body{ overflow-x:hidden; }
+button,.file-label,input,select{ touch-action:manipulation; }
+.table-wrap{ -webkit-overflow-scrolling:touch; scrollbar-gutter:stable; }
+.mobile-scroll-hint{display:none}
+
+@media(max-width:640px){
+  :root{ --sticky1:46px; --sticky2:86px; --sticky3:220px; --sticky4:150px; }
+  header{ position:sticky; top:0; }
+  .header-inner{ padding:10px 12px; gap:10px; }
+  h1{ font-size:17px; line-height:1.25; }
+  .sub{ font-size:11px; line-height:1.45; }
+  .actions{ width:100%; display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .actions button,.actions .file-label{ width:100%; text-align:center; padding:10px 8px; font-size:12px; }
+  .tabs{ padding:0 12px 10px; gap:8px; overflow-x:auto; }
+  .tab{ flex:1; min-width:138px; padding:10px 8px; font-size:14px; }
+  main{ margin:10px auto; padding:0 10px 36px; }
+  .toolbar{ grid-template-columns:1fr; gap:8px; margin-bottom:10px; }
+  .toolbar input,.toolbar select,.switch{ width:100%; min-height:44px; font-size:16px; border-radius:12px; }
+  .card{ border-radius:16px; }
+  .rolebar{ gap:6px; padding:10px; }
+  .chip{ padding:8px 10px; font-size:12px; }
+  .table-wrap{ max-height:calc(100dvh - 310px); border-top:1px solid var(--line); }
+  table{ min-width:720px; }
+  th,td{ padding:8px 7px; font-size:12px; line-height:1.35; }
+  th{ top:0; }
+  td.step,th.step{ width:var(--sticky1); min-width:var(--sticky1); padding-left:4px; padding-right:4px; }
+  td.cat,th.cat{ width:var(--sticky2); min-width:var(--sticky2); left:var(--sticky1); padding-left:6px; padding-right:6px; }
+  td.cond,th.cond{ min-width:165px; max-width:165px; width:165px; }
+  th.step,th.cat{ z-index:38; }
+  td.step,td.cat{ z-index:28; }
+  .editable{ white-space:normal; word-break:break-word; min-height:22px; }
+  .person-col{ min-width:64px; width:64px; max-width:64px; padding-left:4px; padding-right:4px; text-align:center; }
+  .person-head{ min-width:58px; padding:6px 4px; }
+  .person-head .name{ writing-mode:vertical-rl; text-orientation:mixed; height:5.8em; margin:0 auto; line-height:1.1; white-space:nowrap; }
+  .person-head .pct{ display:block; font-size:10px; padding:1px 4px; margin-top:4px; }
+  .check{ width:26px; height:26px; }
+  .hint{ font-size:11px; line-height:1.45; padding:9px 10px; }
+  .drawer{ left:10px; right:10px; top:70px; width:auto; max-height:calc(100dvh - 92px); border-radius:18px; padding:14px; }
+  .drawer h2{ font-size:17px; }
+  .stats{ grid-template-columns:1fr; gap:8px; }
+  .cat-grid{ grid-template-columns:1fr; }
+  .dash-row{ grid-template-columns:1fr 62px; }
+  .admin-tools{ padding:10px; gap:7px; }
+  .admin-tools button{ flex:1 1 100%; min-height:42px; }
+  .admin-tools .spacer{ display:none; }
+  .admin-tools .muted{ width:100%; font-size:11px; line-height:1.45; }
+  .admin-input,.admin-textarea{ font-size:16px; }
+}
+
+@media(max-width:380px){
+  table{ min-width:660px; }
+  td.cond,th.cond{ min-width:145px; max-width:145px; width:145px; }
+  .person-col,.person-head{ min-width:64px; width:64px; max-width:64px; }
+}
+
+.action-panel{display:none;position:absolute;right:0;top:44px;z-index:90;width:min(310px,calc(100vw - 36px));padding:10px;background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);gap:8px;flex-wrap:wrap;justify-content:flex-end;flex-direction:column;align-items:stretch}.action-panel.open{display:flex}.action-panel button,.action-panel .file-label{width:100%;text-align:center;border-radius:12px}
+.drawer-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.drawer-head h2{margin:0;font-size:18px}.close-btn{border-radius:12px;padding:6px 10px;box-shadow:none}.admin-tools .close-btn{margin-left:auto}
+@media(max-width:700px){
+  .menu-toggle{display:inline-flex;align-items:center;gap:6px}
+  .header-inner{gap:10px}.actions{width:100%;justify-content:flex-end;position:relative}.action-panel{display:none;position:absolute;right:0;top:44px;z-index:90;width:min(270px,calc(100vw - 36px));padding:10px;background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);flex-direction:column;align-items:stretch}.action-panel.open{display:flex}.action-panel button,.action-panel .file-label{width:100%;text-align:center;border-radius:12px}.action-panel #importFile{display:none}
+  td.cond,th.cond{position:sticky;left:calc(var(--sticky1) + var(--sticky2));z-index:25}.person-col,.person-head{min-width:64px;width:64px;max-width:64px}.drawer-head h2{font-size:17px}
+}
+@media(max-width:520px){.person-col,.person-head{min-width:64px;width:64px;max-width:64px}}
+
+
+
+/* v3.4 single-role layout fixes */
+.category-chip{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  max-width:100%;
+  min-height:22px;
+  padding:3px 7px;
+  border:1px solid #d8dee8;
+  border-radius:999px;
+  background:#eef0f4;
+  color:#6b7280;
+  font-size:10px;
+  font-weight:800;
+  line-height:1.05;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+table.single-person-table{
+  min-width:calc(var(--sticky1) + var(--sticky2) + var(--sticky3) + 64px);
+  width:max-content;
+}
+table.single-person-table th.cat,
+table.single-person-table td.cat{
+  width:var(--sticky2);
+  min-width:var(--sticky2);
+  max-width:var(--sticky2);
+  left:var(--sticky1);
+  padding-left:6px;
+  padding-right:6px;
+  text-align:center;
+}
+table.single-person-table th.cond,
+table.single-person-table td.cond{
+  left:calc(var(--sticky1) + var(--sticky2));
+}
+table.single-person-table .category-chip{
+  width:auto;
+  max-width:100%;
+  min-height:22px;
+  padding:3px 6px;
+  border-radius:999px;
+  font-size:10px;
+  letter-spacing:-.03em;
+  writing-mode:horizontal-tb;
+  text-orientation:mixed;
+  white-space:nowrap;
+  opacity:.82;
+}
+table.single-person-table .cat-head-label{
+  display:inline-block;
+  font-size:10px;
+  letter-spacing:-.04em;
+  color:#667085;
+}
+.switch input[type="checkbox"]{
+  width:18px!important;
+  height:18px!important;
+  min-height:0!important;
+  flex:0 0 auto;
+  margin:0;
+}
+@media(max-width:700px){
+  .switch{
+    display:flex!important;
+    align-items:center;
+    justify-content:flex-start;
+    gap:8px;
+    padding:0 12px!important;
+    white-space:nowrap;
+    line-height:1;
+  }
+  table.single-person-table{
+    min-width:calc(var(--sticky1) + var(--sticky2) + 165px + 64px);
+  }
+  table.single-person-table td.cat,
+  table.single-person-table th.cat{
+    width:var(--sticky2);
+    min-width:var(--sticky2);
+    max-width:var(--sticky2);
+  }
+  table.single-person-table td.cond,
+  table.single-person-table th.cond{
+    left:calc(var(--sticky1) + var(--sticky2));
+    width:165px;
+    min-width:165px;
+    max-width:165px;
+  }
+  table.single-person-table .person-col,
+  table.single-person-table .person-head{
+    min-width:64px;
+    width:64px;
+    max-width:64px;
+  }
+}
+@media(max-width:380px){
+  table.single-person-table{
+    min-width:calc(var(--sticky1) + var(--sticky2) + 145px + 64px);
+  }
+  table.single-person-table td.cond,
+  table.single-person-table th.cond{
+    left:calc(var(--sticky1) + var(--sticky2));
+    width:145px;
+    min-width:145px;
+    max-width:145px;
+  }
+  table.single-person-table .category-chip{
+    font-size:9px;
+    padding:3px 5px;
+  }
+}
+
+/* v3.5 sticky header fix: keep Content header above sticky row cells while scrolling */
+#tracker th.step, #tracker th.cat, #tracker th.cond{
+  z-index:90!important;
+  background:#f8fafc!important;
+}
+#tracker td.step, #tracker td.cat, #tracker td.cond{
+  z-index:30!important;
+}
+#tracker thead th{
+  box-shadow:0 1px 0 var(--line);
+}
+
+
+/* v3.6 fixed column widths across all display modes */
+#tracker{
+  table-layout:fixed;
+  width:max-content;
+  min-width:calc(var(--sticky1) + var(--sticky2) + var(--sticky3) + var(--people-width, 1280px))!important;
+}
+#tracker th.step,#tracker td.step{
+  width:var(--sticky1)!important;
+  min-width:var(--sticky1)!important;
+  max-width:var(--sticky1)!important;
+}
+#tracker th.cat,#tracker td.cat{
+  width:var(--sticky2)!important;
+  min-width:var(--sticky2)!important;
+  max-width:var(--sticky2)!important;
+  left:var(--sticky1)!important;
+  padding-left:6px!important;
+  padding-right:6px!important;
+  text-align:center;
+}
+#tracker th.cond,#tracker td.cond{
+  width:var(--sticky3)!important;
+  min-width:var(--sticky3)!important;
+  max-width:var(--sticky3)!important;
+  left:calc(var(--sticky1) + var(--sticky2))!important;
+}
+#tracker .person-col,#tracker .person-head{
+  width:64px!important;
+  min-width:64px!important;
+  max-width:64px!important;
+}
+#tracker .category-chip,
+#tracker.single-person-table .category-chip,
+#tracker.all-person-table .category-chip{
+  writing-mode:horizontal-tb!important;
+  text-orientation:mixed!important;
+  white-space:nowrap!important;
+  max-width:100%;
+}
+@media(max-width:700px){
+  :root{--sticky3:165px;}
+  #tracker{min-width:calc(var(--sticky1) + var(--sticky2) + var(--sticky3) + var(--people-width, 64px))!important;}
+}
+@media(max-width:380px){
+  :root{--sticky3:145px;}
+  #tracker{min-width:calc(var(--sticky1) + var(--sticky2) + var(--sticky3) + var(--people-width, 64px))!important;}
+}
+
+
+/* v3.7 menu/category/default display fixes */
+.menu-toggle{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  text-align:center!important;
+  min-width:86px;
+}
+.action-panel button,.action-panel .file-label{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  text-align:center!important;
+}
+#tracker .category-chip,
+#tracker.single-person-table .category-chip,
+#tracker.all-person-table .category-chip{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:auto!important;
+  max-width:100%!important;
+  min-height:22px!important;
+  padding:3px 7px!important;
+  border-radius:999px!important;
+  font-size:10px!important;
+  font-weight:800!important;
+  line-height:1.05!important;
+  letter-spacing:normal!important;
+  opacity:1!important;
+  transform:none!important;
+  writing-mode:horizontal-tb!important;
+  text-orientation:mixed!important;
+  white-space:nowrap!important;
+}
+@media(max-width:380px){
+  #tracker .category-chip,
+  #tracker.single-person-table .category-chip,
+  #tracker.all-person-table .category-chip{
+    font-size:10px!important;
+    padding:3px 7px!important;
+  }
+}
+
+
+/* v3.8 default/all display, category header size, and language toggle */
+#tracker th.cat .cat-head-label,
+#tracker.single-person-table th.cat .cat-head-label,
+#tracker.all-person-table th.cat .cat-head-label{
+  display:inline-block!important;
+  font-size:13px!important;
+  letter-spacing:normal!important;
+  color:inherit!important;
+  line-height:1.2!important;
+}
+.action-panel .lang-toggle{
+  background:#f8fafc;
+  color:#111827;
+}
+body[data-lang="zh"] .category-chip{font-family:system-ui,-apple-system,"Segoe UI","Noto Sans TC",sans-serif;}
+
+/* v3.9 low-profile data management link */
+.admin-footer-link{
+  max-width:1500px;
+  margin:18px auto 34px;
+  padding:0 18px;
+  text-align:center;
+}
+.admin-footer-link button{
+  appearance:none;
+  border:0;
+  background:transparent!important;
+  box-shadow:none!important;
+  border-radius:0;
+  padding:2px 4px;
+  color:#98a2b3!important;
+  font-size:11px;
+  font-weight:500;
+  text-decoration:underline;
+  text-underline-offset:2px;
+  cursor:pointer;
+}
+.admin-footer-link button:hover{
+  color:#667085!important;
+}
+body[data-lang="zh"] .admin-footer-link button{
+  font-family:system-ui,-apple-system,"Segoe UI","Noto Sans TC",sans-serif;
+}
+
+
+/* v5.0 stable visual cleanup: pure text category labels and paper-tone colors */
+#tracker .category-chip,
+#tracker.single-person-table .category-chip,
+#tracker.all-person-table .category-chip{
+  background:#EEE5D5!important;
+  color:#5B4636!important;
+  border:1px solid #D9CDB9!important;
+  border-radius:8px!important;
+  min-height:22px!important;
+  padding:3px 7px!important;
+  font-size:10px!important;
+  font-weight:700!important;
+  line-height:1.05!important;
+  letter-spacing:normal!important;
+  opacity:1!important;
+  box-shadow:none!important;
+  writing-mode:horizontal-tb!important;
+  text-orientation:mixed!important;
+  white-space:nowrap!important;
+}
+#tracker .category-chip[data-cat="ミッション"]{
+  background:#D8C28A!important;
+  border-color:#C5A96E!important;
+  color:#5B4636!important;
+}
+#tracker th.cat .cat-head-label,
+#tracker.single-person-table th.cat .cat-head-label,
+#tracker.all-person-table th.cat .cat-head-label{
+  font-size:13px!important;
+  font-weight:800!important;
+  line-height:1.2!important;
+  letter-spacing:normal!important;
+}
+body[data-lang="zh"] #tracker .category-chip{
+  font-family:system-ui,-apple-system,"Segoe UI","Noto Sans TC",sans-serif!important;
+}
+
+</style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <div class="brand"><h1>エイトリ　きずなっぷ進捗管理</h1><div class="sub">最新達成STEPにチェックを入れると、それまでのSTEPにも自動的にチェックが入る仕様になります。</div></div>
+    <div class="actions">
+      <button class="menu-toggle" id="menuBtn" type="button">メニュー</button>
+      <div class="action-panel" id="actionPanel">
+        <button class="lang-toggle" id="langBtn" type="button">繁體中文</button>
+        <button class="primary" id="dashBtn">達成率一覧</button>
+        <button id="exportBtn">JSON書き出し</button>
+        <label class="file-label" for="importFile">JSON読み込み</label><input id="importFile" type="file" accept="application/json">
+        <button class="danger" id="resetBtn">リセット</button>
+      </div>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" data-group="kucho">区長 <small>20名</small></button>
+    <button class="tab" data-group="conductor">コンダクター <small>4名</small></button>
+  </div>
+</header>
+<main>
+  <div class="toolbar" id="frontToolbar">
+    <input id="search" placeholder="STEP／カテゴリ／内容を検索">
+    <select id="category"><option value="">カテゴリ全部</option></select>
+    <select id="sort"><option value="step">STEP順</option><option value="category">カテゴリ順</option><option value="incomplete">未完成優先</option></select>
+    <label class="switch"><input type="checkbox" id="onlyIncomplete"> 未完成のみ</label>
+  </div>
+  <section class="card" id="frontCard">
+    <div class="rolebar" id="rolebar"></div>
+    <div class="table-wrap"><table id="tracker"></table></div>
+    <div class="hint">Tip：各区長/コンダクターの名前ボタンをクリックすると、その区長/コンダクターのデータのみ表示されるようになります。</div>
+  </section>
+
+  <section class="card hidden" id="adminCard">
+    <div class="admin-tools">
+      <button class="primary" id="saveAdminBtn">保存してデータを反映</button>
+      <button id="addStepBtn">STEP追加</button>
+      <button class="danger" id="resetRowsBtn">現時点のデータを初期化</button>
+      <button class="close-btn" id="adminCloseBtn" type="button">閉じる</button>
+      <span class="spacer"></span>
+      <span class="muted">データ管理：カテゴリ・内容などをまとめて編集できます。</span>
+    </div>
+    <div class="table-wrap"><table id="adminTracker"></table></div>
+    <div class="hint">別の端末でデータを反映させたい場合、JSON書き出し／読み込みをご利用ください。</div>
+  </section>
+</main>
+<div class="admin-footer-link"><button id="adminBtn" type="button">データ管理</button></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-head"><h2>達成率一覧</h2><button class="close-btn" id="drawerCloseBtn" type="button">閉じる</button></div>
+  <div class="stats" id="overallStats"></div>
+  <h3>角色別完成率</h3>
+  <div id="personStats"></div>
+  <h3>カテゴリ別集計</h3>
+  <div class="cat-grid" id="categoryStats"></div>
+</aside>
+<script>
+const BASE = {"kucho":{"label":"区長","people":[{"name":"西園 練牙","color":"#D8A22F"},{"name":"大黒 可不可","color":"#9E84FF"},{"name":"叢雲 添","color":"#C2D3E8"},{"name":"神名 雪風","color":"#3FBBFF"},{"name":"鹿 礼光","color":"#FF1D14"},{"name":"五十竹 あく太","color":"#FF7826"},{"name":"衣川 季肋","color":"#A74EE3"},{"name":"斜木 七基","color":"#34C3B9"},{"name":"輝矢 宗氏","color":"#FF9CCD"},{"name":"久楽間 潮","color":"#8AEE22"},{"name":"北片 來人","color":"#398B67"},{"name":"畔川 幾成","color":"#E9C3FF"},{"name":"夏焼 千弥","color":"#3CE994"},{"name":"木ノ内 太緒","color":"#4C91C2"},{"name":"百目鬼 潜","color":"#D62A60"},{"name":"蜂乃屋 凪","color":"#6660E8"},{"name":"白光 糖衣","color":"#FFD95B"},{"name":"白光 琉衣","color":"#FF3F6F"},{"name":"棗 夜鷹","color":"#EEE4A4"},{"name":"夜半 子タろ","color":"#FF2BC4"}],"rows":[{"step":1,"category":"ミッション","condition":"編成しておもてなしバトルを1回クリア","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"編入隊伍並完成1次「omotenashi battle」","contentField":"condition"},{"step":2,"category":"ミッション","condition":"履歴書を見る","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"查看「履歴書」","contentField":"condition"},{"step":3,"category":"プロフィール","condition":"—","reward":"プロフィール（STEP1）","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"個人資料","contentZh":"個人資料（STEP1）","contentField":"reward"},{"step":4,"category":"ノベル","condition":"—","reward":"区長ノベルSeason1 第1話","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"小說","contentZh":"區長小說 Season1 第1話","contentField":"reward"},{"step":5,"category":"ミッション","condition":"キズナ値300以上","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"羈絆值達 300 以上","contentField":"condition"},{"step":6,"category":"昇級","condition":"9級になる","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"升級","contentZh":"升至 9 級","contentField":"condition"},{"step":7,"category":"ミッション","condition":"編成しておもてなしバトルを1回クリア","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"編入隊伍並完成1次「omotenashi battle」","contentField":"condition"},{"step":8,"category":"プロフィール","condition":"—","reward":"プロフィール（STEP2）","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"個人資料","contentZh":"個人資料（STEP2）","contentField":"reward"},{"step":9,"category":"ノベル","condition":"—","reward":"区長ノベルSeason1 第2話","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"小說","contentZh":"區長小說 Season1 第2話","contentField":"reward"},{"step":10,"category":"ミッション","condition":"カードをLv60にする","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"卡片升至Lv60","contentField":"condition"},{"step":11,"category":"プロフィール","condition":"—","reward":"プロフィール（STEP3）","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"個人資料","contentZh":"個人資料（STEP3）","contentField":"reward"},{"step":12,"category":"ミッション","condition":"キズナ値1,200以上","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"羈絆值達 1,200 以上","contentField":"condition"},{"step":13,"category":"昇級","condition":"8級になる","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"升級","contentZh":"升至 8 級","contentField":"condition"},{"step":14,"category":"ノベル","condition":"—","reward":"区長ノベルSeason1 第3話","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"小說","contentZh":"區長小說 Season1 第3話","contentField":"reward"},{"step":15,"category":"ミッション","condition":"編成しておもてなしバトルを1回クリア","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"編入隊伍並完成1次「omotenashi battle」","contentField":"condition"},{"step":16,"category":"プロフィール","condition":"—","reward":"プロフィール（STEP4）","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"個人資料","contentZh":"個人資料（STEP4）","contentField":"reward"},{"step":17,"category":"ミッション","condition":"編成しておもてなしバトルを1回クリア","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"編入隊伍並完成1次「omotenashi battle」","contentField":"condition"},{"step":18,"category":"ボイス","condition":"—","reward":"王子ボイス","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"語音","contentZh":"王子情境語音","contentField":"reward"},{"step":19,"category":"ミッション","condition":"カードを1回トリレボ（絵柄変更）","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"讓卡片進行等級上限突破並轉換卡面 1 次","contentField":"condition"},{"step":20,"category":"ノベル","condition":"—","reward":"区長ノベルSeason1 第4話","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"小說","contentZh":"區長小說 Season1 第4話","contentField":"reward"},{"step":21,"category":"ミッション","condition":"キズナ値10,000以上","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"羈絆值達 10,000 以上","contentField":"condition"},{"step":22,"category":"昇級","condition":"7級になる","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"升級","contentZh":"升至 7 級","contentField":"condition"},{"step":23,"category":"ノベル","condition":"—","reward":"区長ノベルSeason1 第5話","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"小說","contentZh":"區長小說 Season1 第5話","contentField":"reward"},{"step":24,"category":"ミッション","condition":"編成しておもてなしバトルを1回クリア","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"編入隊伍並完成1次「omotenashi battle」","contentField":"condition"},{"step":25,"category":"ノベル","condition":"—","reward":"区長ノベルSeason1.5 第1話","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"小說","contentZh":"區長小說 Season1.5 第1話","contentField":"reward"},{"step":26,"category":"プロフィール","condition":"—","reward":"プロフィール（STEP5）","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"個人資料","contentZh":"個人資料（STEP5）","contentField":"reward"},{"step":27,"category":"ミッション","condition":"研修旅行を1回実施","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"進行 1 次研修旅行","contentField":"condition"},{"step":28,"category":"ノベル","condition":"—","reward":"区長ノベルSeason1.5 第2話","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"小說","contentZh":"區長小說 Season1.5 第2話","contentField":"reward"},{"step":29,"category":"プロフィール","condition":"—","reward":"プロフィール（STEP6）","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"個人資料","contentZh":"個人資料（STEP6）","contentField":"reward"},{"step":30,"category":"ミッション","condition":"カードを1回スキルLv.MAXにする","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"讓 1 張卡片技能 Lv.MAX","contentField":"condition"},{"step":31,"category":"ノベル","condition":"—","reward":"区長ノベルSeason1.5 第3話","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"小說","contentZh":"區長小說 Season1.5 第3話","contentField":"reward"},{"step":32,"category":"プロフィール","condition":"—","reward":"プロフィール（STEP7）","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"個人資料","contentZh":"個人資料（STEP7）","contentField":"reward"},{"step":33,"category":"ミッション","condition":"経営に配置","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"在經營功能派遣至任意部署","contentField":"condition"},{"step":34,"category":"ミッション","condition":"カードLv80","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"卡片升至Lv80","contentField":"condition"},{"step":35,"category":"ボイス","condition":"—","reward":"看病ボイス","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"語音","contentZh":"陪病情境語音","contentField":"reward"},{"step":36,"category":"ミッション","condition":"キズナ値25,000以上","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"羈絆值達 25,000 以上","contentField":"condition"},{"step":37,"category":"昇級","condition":"6級になる","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"升級","contentZh":"升至 6 級","contentField":"condition"},{"step":38,"category":"衣装","condition":"—","reward":"ミニ区長コーデ","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"服裝","contentZh":"迷你區長套裝","contentField":"reward"},{"step":39,"category":"ミッション","condition":"編成しておもてなしバトルを1回クリア","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"編入隊伍並完成1次「omotenashi battle」","contentField":"condition"},{"step":40,"category":"プロフィール","condition":"—","reward":"プロフィール（STEP8）","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"個人資料","contentZh":"個人資料（STEP8）","contentField":"reward"},{"step":41,"category":"ミッション","condition":"カードLv100","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"卡片升至Lv100","contentField":"condition"},{"step":42,"category":"プロフィール","condition":"—","reward":"プロフィール（STEP9）","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"個人資料","contentZh":"個人資料（STEP9）","contentField":"reward"},{"step":43,"category":"ミッション","condition":"編成しておもてなしバトルを1回クリア","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"編入隊伍並完成1次「omotenashi battle」","contentField":"condition"},{"step":44,"category":"プロフィール","condition":"—","reward":"プロフィール（STEP10）","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"個人資料","contentZh":"個人資料（STEP10）","contentField":"reward"},{"step":45,"category":"ミッション","condition":"カードスキルをMAX+++にする","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"將1張卡片技能升至 MAX+++","contentField":"condition"},{"step":46,"category":"ボイス","condition":"—","reward":"ロボアニメボイス","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"語音","contentZh":"機器人動畫情境語音","contentField":"reward"},{"step":47,"category":"ミッション","condition":"キズナ値40,000","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"羈絆值達 40,000","contentField":"condition"},{"step":48,"category":"衣装","condition":"—","reward":"マイページ区長衣装","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"服裝","contentZh":"個人頁面區長服裝","contentField":"reward"},{"step":49,"category":"昇級","condition":"5級になる","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"升級","contentZh":"升至 5 級","contentField":"condition"},{"step":50,"category":"ミッション","condition":"編成しておもてなしバトルを1回クリア","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"編入隊伍並完成1次「omotenashi battle」","contentField":"condition"},{"step":51,"category":"ミッション","condition":"研修旅行を1回実施","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"進行 1 次研修旅行","contentField":"condition"},{"step":52,"category":"ミッション","condition":"カードを累計3回トリレボ（絵柄変更）","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"讓卡片進行等級上限突破並轉換卡面累積 3 次","contentField":"condition"},{"step":53,"category":"ミッション","condition":"編成しておもてなしバトルを1回クリア","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"編入隊伍並完成1次「omotenashi battle」","contentField":"condition"},{"step":54,"category":"ミッション","condition":"経営に配置","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"在經營功能派遣至任意部署","contentField":"condition"},{"step":55,"category":"ミッション","condition":"スキルMAX+++のカード合計3枚","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"卡片技能 MAX+++累積3張","contentField":"condition"},{"step":56,"category":"ミッション","condition":"編成しておもてなしバトルを1回クリア","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"編入隊伍並完成1次「omotenashi battle」","contentField":"condition"},{"step":57,"category":"ミッション","condition":"キズナ値90,000以上","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"羈絆值達 90,000 以上","contentField":"condition"},{"step":58,"category":"アイテム","condition":"—","reward":"部屋のカケラ","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"道具","contentZh":"房間碎片","contentField":"reward"},{"step":59,"category":"アイテム","condition":"—","reward":"インテリア","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"道具","contentZh":"室內裝潢","contentField":"reward"},{"step":60,"category":"昇級","condition":"4級になる","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"升級","contentZh":"升至 4 級","contentField":"condition"},{"step":61,"category":"ミッション","condition":"編成しておもてなしバトルを1回クリア","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"編入隊伍並完成1次「omotenashi battle」","contentField":"condition"},{"step":62,"category":"ミッション","condition":"研修旅行を1回実施","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"進行 1 次研修旅行","contentField":"condition"},{"step":63,"category":"ミッション","condition":"カードを累計15回トリレボ（絵柄変更）","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"讓卡片進行等級上限突破並轉換卡面累積 15 次","contentField":"condition"},{"step":64,"category":"ボイス","condition":"—","reward":"執事ボイス","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"語音","contentZh":"管家情境語音","contentField":"reward"},{"step":65,"category":"ミッション","condition":"編成しておもてなしバトルを1回クリア","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"編入隊伍並完成1次「omotenashi battle」","contentField":"condition"},{"step":66,"category":"ミッション","condition":"キズナ値130,000以上","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"羈絆值達 130,000 以上","contentField":"condition"},{"step":67,"category":"ミッション","condition":"おもてなしホリック解放","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"解鎖「おもてなしホリック」功能","contentField":"condition"},{"step":68,"category":"ミッション","condition":"経営に配置","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"在經營功能派遣至任意部署","contentField":"condition"},{"step":69,"category":"ボイス","condition":"—","reward":"ボイス追加","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"語音","contentZh":"新增語音種類","contentField":"reward"},{"step":70,"category":"ミッション","condition":"カード8枚スキルMAX+++","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"卡片技能 MAX+++累積8張","contentField":"condition"},{"step":71,"category":"ボイス","condition":"—","reward":"遭難ボイス","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"語音","contentZh":"遇難情境語音","contentField":"reward"},{"step":72,"category":"ミッション","condition":"編成しておもてなしバトルを1回クリア","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"編入隊伍並完成1次「omotenashi battle」","contentField":"condition"},{"step":73,"category":"ミッション","condition":"キズナ値170,000以上","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"羈絆值達 170,000 以上","contentField":"condition"},{"step":74,"category":"アイテム","condition":"—","reward":"インテリア","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"道具","contentZh":"室內裝潢","contentField":"reward"},{"step":75,"category":"昇級","condition":"3級になる","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"升級","contentZh":"升至 3 級","contentField":"condition"},{"step":76,"category":"ミッション","condition":"編成しておもてなしバトルを1回クリア","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"編入隊伍並完成1次「omotenashi battle」","contentField":"condition"},{"step":77,"category":"ミッション","condition":"研修旅行を1回実施","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"進行 1 次研修旅行","contentField":"condition"},{"step":78,"category":"ミッション","condition":"編成した研修旅行レポートをポスト","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"SNS上發佈該角色的研修旅行報告","contentField":"condition"},{"step":79,"category":"ミッション","condition":"キズナ値200,000以上","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"羈絆值達 200,000 以上","contentField":"condition"},{"step":80,"category":"ボイス","condition":"—","reward":"寝落ちボイス","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"語音","contentZh":"睡著情境語音","contentField":"reward"},{"step":81,"category":"ミッション","condition":"編成しておもてなしバトルを1回クリア","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"編入隊伍並完成1次「omotenashi battle」","contentField":"condition"},{"step":82,"category":"ミッション","condition":"スキルMAX+++のカード合計10枚","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"卡片技能 MAX+++累積10張","contentField":"condition"},{"step":83,"category":"ミッション","condition":"経営に配置","reward":"","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"任務","contentZh":"在經營功能派遣至任意部署","contentField":"condition"},{"step":84,"category":"アイテム","condition":"—","reward":"区長サイン・黒","checks":{"西園 練牙":false,"大黒 可不可":false,"叢雲 添":false,"神名 雪風":false,"鹿 礼光":false,"五十竹 あく太":false,"衣川 季肋":false,"斜木 七基":false,"輝矢 宗氏":false,"久楽間 潮":false,"北片 來人":false,"畔川 幾成":false,"夏焼 千弥":false,"木ノ内 太緒":false,"百目鬼 潜":false,"蜂乃屋 凪":false,"白光 糖衣":false,"白光 琉衣":false,"棗 夜鷹":false,"夜半 子タろ":false},"categoryZh":"道具","contentZh":"剪貼簿區長簽名・黑","contentField":"reward"}]},"conductor":{"label":"コンダクター","people":[{"name":"笛吹 也千代","color":"#C8FF46"},{"name":"雁金 朔次郎","color":"#C8FF46"},{"name":"北片 生行","color":"#C8FF46"},{"name":"岩渕 ダニエル 比呂士","color":"#C8FF46"}],"rows":[{"step":1,"category":"ミッション","condition":"編成しておもてなしバトルを1回クリア","reward":"","checks":{"笛吹 也千代":false,"雁金 朔次郎":false,"北片 生行":false,"岩渕 ダニエル 比呂士":false},"categoryZh":"任務","contentZh":"編入隊伍並完成1次「omotenashi battle」","contentField":"condition"},{"step":2,"category":"ミッション","condition":"履歴書を見る","reward":"","checks":{"笛吹 也千代":false,"雁金 朔次郎":false,"北片 生行":false,"岩渕 ダニエル 比呂士":false},"categoryZh":"任務","contentZh":"查看「履歴書」","contentField":"condition"},{"step":3,"category":"ミッション","condition":"キズナ値5,000以上","reward":"","checks":{"笛吹 也千代":false,"雁金 朔次郎":false,"北片 生行":false,"岩渕 ダニエル 比呂士":false},"categoryZh":"任務","contentZh":"羈絆值達 5,000 以上","contentField":"condition"},{"step":4,"category":"ミッション","condition":"編成しておもてなしバトルを1回クリア","reward":"","checks":{"笛吹 也千代":false,"雁金 朔次郎":false,"北片 生行":false,"岩渕 ダニエル 比呂士":false},"categoryZh":"任務","contentZh":"編入隊伍並完成1次「omotenashi battle」","contentField":"condition"},{"step":5,"category":"昇級","condition":"9級になる","reward":"","checks":{"笛吹 也千代":false,"雁金 朔次郎":false,"北片 生行":false,"岩渕 ダニエル 比呂士":false},"categoryZh":"升級","contentZh":"升至 9 級","contentField":"condition"},{"step":6,"category":"ミッション","condition":"編成しておもてなしバトルを1回クリア","reward":"","checks":{"笛吹 也千代":false,"雁金 朔次郎":false,"北片 生行":false,"岩渕 ダニエル 比呂士":false},"categoryZh":"任務","contentZh":"編入隊伍並完成1次「omotenashi battle」","contentField":"condition"},{"step":7,"category":"ミッション","condition":"カードを1回スキルLv.MAXにする","reward":"","checks":{"笛吹 也千代":false,"雁金 朔次郎":false,"北片 生行":false,"岩渕 ダニエル 比呂士":false},"categoryZh":"任務","contentZh":"將 1 張卡片技能升至Lv.MAX","contentField":"condition"},{"step":8,"category":"ミッション","condition":"キズナ値12,000以上","reward":"","checks":{"笛吹 也千代":false,"雁金 朔次郎":false,"北片 生行":false,"岩渕 ダニエル 比呂士":false},"categoryZh":"任務","contentZh":"羈絆值達 12,000 以上","contentField":"condition"},{"step":9,"category":"昇級","condition":"8級になる","reward":"","checks":{"笛吹 也千代":false,"雁金 朔次郎":false,"北片 生行":false,"岩渕 ダニエル 比呂士":false},"categoryZh":"升級","contentZh":"升至 8 級","contentField":"condition"},{"step":10,"category":"衣装","condition":"—","reward":"ミニ区長コーデ","checks":{"笛吹 也千代":false,"雁金 朔次郎":false,"北片 生行":false,"岩渕 ダニエル 比呂士":false},"categoryZh":"服裝","contentZh":"迷你區長套裝","contentField":"reward"},{"step":11,"category":"ミッション","condition":"編成しておもてなしバトルを1回クリア","reward":"","checks":{"笛吹 也千代":false,"雁金 朔次郎":false,"北片 生行":false,"岩渕 ダニエル 比呂士":false},"categoryZh":"任務","contentZh":"編入隊伍並完成1次「omotenashi battle」","contentField":"condition"},{"step":12,"category":"ミッション","condition":"経営に配置","reward":"","checks":{"笛吹 也千代":false,"雁金 朔次郎":false,"北片 生行":false,"岩渕 ダニエル 比呂士":false},"categoryZh":"任務","contentZh":"在經營功能派遣至任意部署","contentField":"condition"},{"step":13,"category":"ミッション","condition":"カードを1回トリレボ（絵柄変更）","reward":"","checks":{"笛吹 也千代":false,"雁金 朔次郎":false,"北片 生行":false,"岩渕 ダニエル 比呂士":false},"categoryZh":"任務","contentZh":"讓卡片進行等級上限突破並轉換卡面 1 次","contentField":"condition"},{"step":14,"category":"ミッション","condition":"編成しておもてなしバトルを1回クリア","reward":"","checks":{"笛吹 也千代":false,"雁金 朔次郎":false,"北片 生行":false,"岩渕 ダニエル 比呂士":false},"categoryZh":"任務","contentZh":"編入隊伍並完成1次「omotenashi battle」","contentField":"condition"},{"step":15,"category":"ミッション","condition":"キズナ値25,000以上","reward":"","checks":{"笛吹 也千代":false,"雁金 朔次郎":false,"北片 生行":false,"岩渕 ダニエル 比呂士":false},"categoryZh":"任務","contentZh":"羈絆值達 25,000 以上","contentField":"condition"},{"step":16,"category":"昇級","condition":"7級になる","reward":"","checks":{"笛吹 也千代":false,"雁金 朔次郎":false,"北片 生行":false,"岩渕 ダニエル 比呂士":false},"categoryZh":"升級","contentZh":"升至 7 級","contentField":"condition"},{"step":17,"category":"ボイス","condition":"—","reward":"ボイス追加","checks":{"笛吹 也千代":false,"雁金 朔次郎":false,"北片 生行":false,"岩渕 ダニエル 比呂士":false},"categoryZh":"語音","contentZh":"新增語音種類","contentField":"reward"}]}};
+const KEY = '18trip-kizunapp-tracker-v2-3-category-fixed';
+const ADMIN_PASSWORD = '18trip';
+const PREF_KEY = '18trip-kizunapp-tracker-v2-3-category-fixed-prefs';
+let state = loadState();
+let prefs = loadPrefs();
+let group = prefs.group || 'kucho';
+let selectedPerson = null; // default: 全員表示
+const SINGLE_PERSON_DEFAULT = false;
+let viewMode = sessionStorage.getItem('18trip-admin-ok') === '1' ? (prefs.viewMode || 'front') : 'front';
+state = normalizeStateCategories(state);
+
+function freshState(){
+  const s = {version:2, groups:{}};
+  for (const [g,d] of Object.entries(BASE)){
+    s.groups[g] = {rows: d.rows.map(r=>({...r, checks:Object.fromEntries(d.people.map(p=>[p.name,false]))}))};
+  }
+  return s;
+}
+function loadState(){
+  try{
+    const saved = JSON.parse(localStorage.getItem(KEY));
+    if(saved && saved.groups) return mergeState(saved);
+  }catch(e){}
+  return freshState();
+}
+function loadPrefs(){
+  try{return JSON.parse(localStorage.getItem(PREF_KEY)) || {};}
+  catch(e){return {};}
+}
+function normalizeCategory(cat){ return (cat === '部屋' || cat === '家具') ? 'アイテム' : cat; }
+function normalizeStateCategories(s){
+  Object.values(s.groups || {}).forEach(g=>{
+    (g.rows || []).forEach(r=>{ r.category = normalizeCategory(r.category); });
+  });
+  return s;
+}
+function savePrefs(){
+  const p = {
+    group,
+    selectedPerson,
+    search: document.getElementById('search')?.value || '',
+    category: normalizeCategory(document.getElementById('category')?.value || ''),
+    sort: document.getElementById('sort')?.value || 'step',
+    onlyIncomplete: !!document.getElementById('onlyIncomplete')?.checked,
+    drawerOpen: document.getElementById('drawer')?.classList.contains('open') || false,
+    viewMode,
+    lang: currentLang
+  };
+  localStorage.setItem(PREF_KEY, JSON.stringify(p));
+}
+function applyPrefs(){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.group===group));
+  document.getElementById('search').value = prefs.search || '';
+  document.getElementById('sort').value = prefs.sort || 'step';
+  document.getElementById('onlyIncomplete').checked = !!prefs.onlyIncomplete;
+  if(prefs.drawerOpen) document.getElementById('drawer').classList.add('open');
+  applyViewMode();
+}
+function mergeState(saved){
+  const f=freshState();
+  for (const g of Object.keys(f.groups)){
+    const oldRows = saved.groups?.[g]?.rows || [];
+    const byStep = Object.fromEntries(oldRows.map(r=>[r.step,r]));
+    f.groups[g].rows = f.groups[g].rows.map(r=>{
+      const old = byStep[r.step] || {};
+      return {
+        step:r.step,
+        category: normalizeCategory(old.category ?? r.category),
+        categoryZh: r.categoryZh,
+        contentZh: r.contentZh,
+        contentField: r.contentField,
+        condition: old.condition ?? r.condition,
+        reward: old.reward ?? r.reward,
+        checks: {...r.checks, ...(old.checks||{})}
+      }
+    });
+  }
+  return f;
+}
+function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
+const esc = v => String(v ?? '').replace(/[&<>"]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+const TRANSLATIONS_ZH = {"エイトリ　きずなっぷ進捗管理":"18TRIP 羈絆進度管理","最新達成STEPにチェックを入れると、それまでのSTEPにも自動的にチェックが入る仕様になります。":"勾選最新達成的 STEP 後，之前的 STEP 也會自動勾選。","メニュー":"選單","達成率一覧":"達成率一覽","データ管理":"資料管理","JSON書き出し":"匯出 JSON","JSON読み込み":"讀取 JSON","リセット":"重置","全員表示":"顯示全員","STEP順":"依 STEP 排序","カテゴリ順":"依分類排序","未完成優先":"未完成優先","未完成のみ":"僅顯示未完成","カテゴリ全部":"全部分類","STEP／カテゴリ／内容を検索":"搜尋 STEP／分類／內容","閉じる":"關閉","保存してデータを反映":"儲存並反映資料","STEP追加":"新增 STEP","現時点のデータを初期化":"將目前資料初始化","データ管理：カテゴリ・内容などをまとめて編集できます。":"資料管理：可集中編輯分類與內容等資料。","別の端末でデータを反映させたい場合、JSON書き出し／読み込みをご利用ください。":"若要在其他裝置套用資料，請使用匯出／讀取 JSON。","Tip：各区長/コンダクターの名前ボタンをクリックすると、その区長/コンダクターのデータのみ表示されるようになります。":"提示：點擊各區長／經理的姓名按鈕後，只會顯示該角色的資料。","ミッション":"任務","プロフィール":"個人資料","ノベル":"小說","昇級":"升級","ボイス":"語音","衣装":"服裝","アイテム":"道具","編成しておもてなしバトルを1回クリア":"編入隊伍並完成1次「omotenashi battle」","履歴書を見る":"查看「履歴書」","プロフィール（STEP1）":"個人資料（STEP1）","区長ノベルSeason1 第1話":"區長小說 Season1 第1話","キズナ値300以上":"羈絆值達 300 以上","9級になる":"升至 9 級","プロフィール（STEP2）":"個人資料（STEP2）","区長ノベルSeason1 第2話":"區長小說 Season1 第2話","カードをLv60にする":"卡片 Lv60","プロフィール（STEP3）":"個人資料（STEP3）","キズナ値1,200以上":"羈絆值達 1,200 以上","8級になる":"升至 8 級","区長ノベルSeason1 第3話":"區長小說 Season1 第3話","プロフィール（STEP4）":"個人資料（STEP4）","王子ボイス":"王子情境語音","カードを1回トリレボ（絵柄変更）":"讓卡片進行等級上限突破並轉換卡面 1 次","区長ノベルSeason1 第4話":"區長小說 Season1 第4話","キズナ値10,000以上":"羈絆值達 10,000 以上","7級になる":"升至 7 級","区長ノベルSeason1 第5話":"區長小說 Season1 第5話","区長ノベルSeason1.5 第1話":"區長小說 Season1.5 第1話","プロフィール（STEP5）":"個人資料（STEP5）","研修旅行を1回実施":"進行 1 次研修旅行","区長ノベルSeason1.5 第2話":"區長小說 Season1.5 第2話","プロフィール（STEP6）":"個人資料（STEP6）","カードを1回スキルLv.MAXにする":"將 1 張卡片技能升至Lv.MAX","区長ノベルSeason1.5 第3話":"區長小說 Season1.5 第3話","プロフィール（STEP7）":"個人資料（STEP7）","経営に配置":"在經營功能派遣至任意部署","カードLv80":"卡片升至Lv80","看病ボイス":"陪病情境語音","キズナ値25,000以上":"羈絆值達 25,000 以上","6級になる":"升至 6 級","ミニ区長コーデ":"迷你區長套裝","プロフィール（STEP8）":"個人資料（STEP8）","カードLv100":"卡片升至Lv100","プロフィール（STEP9）":"個人資料（STEP9）","プロフィール（STEP10）":"個人資料（STEP10）","カードスキルをMAX+++にする":"將1張卡片技能升至 MAX+++","ロボアニメボイス":"機器人動畫情境語音","キズナ値40,000":"羈絆值達 40,000","マイページ区長衣装":"個人頁面區長服裝","5級になる":"升至 5 級","カードを累計3回トリレボ（絵柄変更）（絵柄変更）":"卡片累計 TRIREVO 3 次","スキルMAX+++のカード合計3枚":"3 張卡片技能 MAX+++","キズナ値90,000以上":"羈絆值達 90,000 以上","部屋のカケラ":"房間碎片","インテリア":"室內裝潢","4級になる":"升至 4 級","カードを累計15回トリレボ（絵柄変更）（絵柄変更）":"卡片累計 TRIREVO 15 次","執事ボイス":"管家情境語音","キズナ値130,000以上":"羈絆值達 130,000 以上","おもてなしホリック解放":"解鎖「おもてなしホリック」功能","ボイス追加":"新增語音種類","カード8枚スキルMAX+++":"卡片技能 MAX+++累積8張","遭難ボイス":"遇難情境語音","キズナ値170,000以上":"羈絆值達 170,000 以上","3級になる":"升至 3 級","編成して研修旅行を1回実施":"編入隊伍並進行 1 次研修旅行","編成した研修旅行レポートをポスト":"SNS上發佈該角色的研修旅行報告","キズナ値200,000以上":"羈絆值達 200,000 以上","寝落ちボイス":"睡著情境語音","スキルMAX+++のカード合計10枚":"10 張卡片技能 MAX+++","区長サイン・黒":"剪貼簿區長簽名・黑","キズナ値5,000以上":"羈絆值達 5,000 以上","キズナ値12,000以上":"羈絆值達 12,000 以上","区長":"區長","西園 練牙":"西園 練牙","大黒 可不可":"大黒 可不可","叢雲 添":"叢雲 添","神名 雪風":"神名 雪風","鹿 礼光":"鹿 礼光","五十竹 あく太":"五十竹 あく太","衣川 季肋":"衣川 季肋","斜木 七基":"斜木 七基","輝矢 宗氏":"輝矢 宗氏","久楽間 潮":"久楽間 潮","北片 來人":"北片 來人","畔川 幾成":"畔川 幾成","夏焼 千弥":"夏焼 千弥","木ノ内 太緒":"木ノ内 太緒","百目鬼 潜":"百目鬼 潜","蜂乃屋 凪":"蜂乃屋 凪","白光 糖衣":"白光 糖衣","白光 琉衣":"白光 琉衣","棗 夜鷹":"棗 夜鷹","夜半 子タろ":"夜半 子タろ","コンダクター":"經理","笛吹 也千代":"笛吹 也千代","雁金 朔次郎":"雁金 朔次郎","北片 生行":"北片 生行","岩渕 ダニエル 比呂士":"岩渕 ダニエル 比呂士","カードをLv60にする":"卡片升至Lv60","カードを1回トリレボ（絵柄変更）":"讓卡片進行 1 次 TRIREVO","カードスキルをMAX+++にする":"卡片技能 MAX+++","カードを累計3回トリレボ（絵柄変更）":"讓卡片進行等級上限突破並轉換卡面累積 3 次","スキルMAX+++のカード合計3枚":"卡片技能 MAX+++累積3張","カードを累計15回トリレボ（絵柄変更）":"讓卡片進行等級上限突破並轉換卡面累積 15 次","スキルMAX+++のカード合計10枚":"卡片技能 MAX+++累積10張","内容":"內容","カテゴリ":"分類","操作":"操作","削除":"刪除","日本語":"日本語","繁體中文":"繁體中文","データ管理のパスワードを入力してください。":"請輸入資料管理密碼。","パスワードが違います。":"密碼錯誤。","読み込みました。":"已讀取。","JSONを読み込めませんでした。":"無法讀取 JSON。","このSTEPを削除しますか？":"要刪除此 STEP 嗎？","チェック状態・編集内容・画面設定を初期状態に戻しますか？":"要將勾選狀態、編輯內容與畫面設定恢復為初始狀態嗎？","表示できる項目がありません。":"沒有可顯示的項目。","全体":"全體","未分類":"未分類"};
+let currentLang = prefs.lang || 'ja';
+function tr(v){
+  const s = String(v ?? '');
+  return currentLang === 'zh' ? (TRANSLATIONS_ZH[s] || s) : s;
+}
+function setText(id, text){ const el=document.getElementById(id); if(el) el.textContent=tr(text); }
+function applyLanguageStatic(){
+  document.documentElement.lang = currentLang === 'zh' ? 'zh-Hant' : 'ja';
+  document.body.dataset.lang = currentLang;
+  document.title = tr('エイトリ　きずなっぷ進捗管理');
+  const title=document.querySelector('.brand h1'); if(title) title.textContent=tr('エイトリ　きずなっぷ進捗管理');
+  const sub=document.querySelector('.brand .sub'); if(sub) sub.textContent=tr('最新達成STEPにチェックを入れると、それまでのSTEPにも自動的にチェックが入る仕様になります。');
+  setText('menuBtn','メニュー'); setText('dashBtn','達成率一覧'); setText('adminBtn','データ管理'); setText('exportBtn','JSON書き出し'); setText('resetBtn','リセット');
+  const importLabel=document.querySelector('label[for="importFile"]'); if(importLabel) importLabel.textContent=tr('JSON読み込み');
+  const langBtn=document.getElementById('langBtn'); if(langBtn) langBtn.textContent = currentLang === 'zh' ? '日本語' : '繁體中文';
+  const search=document.getElementById('search'); if(search) search.placeholder=tr('STEP／カテゴリ／内容を検索');
+  const sort=document.getElementById('sort'); if(sort){
+    const labels=['STEP順','カテゴリ順','未完成優先']; [...sort.options].forEach((o,i)=>{ if(labels[i]) o.textContent=tr(labels[i]); });
+  }
+  const sw=document.querySelector('.switch'); if(sw){ const cb=sw.querySelector('input'); sw.innerHTML=''; sw.appendChild(cb); sw.append(' '+tr('未完成のみ')); }
+  document.querySelectorAll('.tab').forEach(t=>{ const g=t.dataset.group; const small=t.querySelector('small')?.outerHTML || ''; t.innerHTML=tr(BASE[g].label)+' '+small; });
+  setText('saveAdminBtn','保存してデータを反映'); setText('addStepBtn','STEP追加'); setText('resetRowsBtn','現時点のデータを初期化');
+  setText('drawerCloseBtn','閉じる'); setText('adminCloseBtn','閉じる');
+  const drawerTitle=document.querySelector('#drawer h2'); if(drawerTitle) drawerTitle.textContent=tr('達成率一覧');
+  const drawerH3=[...document.querySelectorAll('#drawer h3')]; if(drawerH3[0]) drawerH3[0].textContent=tr('角色別完成率'); if(drawerH3[1]) drawerH3[1].textContent=tr('カテゴリ別集計');
+  const frontHint=document.querySelector('#frontCard .hint'); if(frontHint) frontHint.textContent=tr('Tip：各区長/コンダクターの名前ボタンをクリックすると、その区長/コンダクターのデータのみ表示されるようになります。');
+  const adminMuted=document.querySelector('.admin-tools .muted'); if(adminMuted) adminMuted.textContent=tr('データ管理：カテゴリ・内容などをまとめて編集できます。');
+  const adminHint=document.querySelector('#adminCard .hint'); if(adminHint) adminHint.textContent=tr('別の端末でデータを反映させたい場合、JSON書き出し／読み込みをご利用ください。');
+}
+
+function meaningful(v){ const s=String(v ?? '').trim(); return s && s !== '—'; }
+function rowContent(r){ return meaningful(r.condition) ? r.condition : (r.reward || '—'); }
+function shortName(name){ const parts=String(name||'').trim().split(/\s+/); return parts.length ? parts[parts.length-1] : name; }
+function contentFieldForRow(r){ return meaningful(r.condition) ? 'condition' : 'reward'; }
+function rows(){return state.groups[group].rows}
+function people(){return BASE[group].people}
+function currentPeople(){return selectedPerson ? people().filter(p=>p.name===selectedPerson) : people()}
+function rowComplete(r){ const ps=currentPeople(); return ps.length && ps.every(p=>r.checks[p.name]); }
+function pctForPerson(name,g=group){const rs=state.groups[g].rows; return rs.length? Math.round(100*rs.filter(r=>r.checks[name]).length/rs.length):0}
+function updateCategoryOptions(){
+  const sel=document.getElementById('category'), old=sel.value;
+  normalizeStateCategories(state);
+  const cats=[...new Set(rows().map(r=>normalizeCategory(r.category)).filter(c=>c && c !== '部屋' && c !== '家具'))].sort();
+  sel.innerHTML='<option value="">'+esc(tr('カテゴリ全部'))+'</option>'+cats.map(c=>`<option value="${esc(c)}">${esc(tr(c))}</option>`).join('');
+  sel.value = cats.includes(old) ? old : (cats.includes(prefs.category) ? prefs.category : '');
+}
+function renderRolebar(){
+  const rb=document.getElementById('rolebar');
+  rb.innerHTML = `<button class="chip ${!selectedPerson?'active':''}" data-person="">${esc(tr('全員表示'))}</button>` + people().map(p=>
+    `<button class="chip ${selectedPerson===p.name?'active':''}" data-person="${esc(p.name)}"><span class="dot" style="background:${p.color}"></span>${esc(p.name)} <span class="muted">${pctForPerson(p.name)}%</span></button>`
+  ).join('');
+  rb.querySelectorAll('button').forEach(b=>b.onclick=()=>{selectedPerson=b.dataset.person||null;savePrefs();render();});
+}
+
+function rowDisplayCategory(r){
+  return currentLang === 'zh' ? (r.categoryZh || tr(r.category)) : r.category;
+}
+function rowDisplayContent(r){
+  return currentLang === 'zh' ? (r.contentZh || tr(rowContent(r))) : rowContent(r);
+}
+function filteredRows(){
+  let rs=[...rows()];
+  const q=document.getElementById('search').value.trim().toLowerCase();
+  const cat=document.getElementById('category').value;
+  const only=document.getElementById('onlyIncomplete').checked;
+  if(q) rs=rs.filter(r=>[r.step,r.category,r.condition,r.reward,r.categoryZh,r.contentZh].join(' ').toLowerCase().includes(q));
+  if(cat) rs=rs.filter(r=>normalizeCategory(r.category)===cat);
+  if(only) rs=rs.filter(r=>!rowComplete(r));
+  const sort=document.getElementById('sort').value;
+  if(sort==='category') rs.sort((a,b)=>(a.category||'').localeCompare(b.category||'ja') || a.step-b.step);
+  if(sort==='incomplete') rs.sort((a,b)=>Number(rowComplete(a))-Number(rowComplete(b)) || a.step-b.step);
+  return rs;
+}
+function renderTable(){
+  const tbl=document.getElementById('tracker'); const ps=currentPeople(); const rs=filteredRows();
+  tbl.className = selectedPerson ? 'single-person-table' : 'all-person-table';
+  tbl.style.setProperty('--people-width', `${ps.length * 64}px`);
+  if(!rs.length){tbl.innerHTML=`<tr><td class="empty">${esc(tr('表示できる項目がありません。'))}</td></tr>`;return;}
+  let html=`<thead><tr><th class="step">STEP</th><th class="cat"><span class="cat-head-label">${esc(tr('カテゴリ'))}</span></th><th class="cond">${esc(tr('内容'))}</th>`;
+  for(const p of ps){html+=`<th class="person-col person-head" style="background:${p.color}" title="${esc(p.name)}"><span class="name">${esc(shortName(p.name))}</span><span class="pct">${pctForPerson(p.name)}%</span></th>`}
+  html+='</tr></thead><tbody>';
+  for(const r of rs){
+    html+=`<tr class="${rowComplete(r)?'row-complete':''}" data-step="${r.step}">`+
+    `<td class="step">${r.step}</td>`+
+    `<td class="cat"><span class="category-chip" data-cat="${esc(normalizeCategory(r.category))}" title="${esc(rowDisplayCategory(r))}">${esc(rowDisplayCategory(r))}</span></td>`+
+    `<td class="cond"><div class="editable readonly content-text">${esc(rowDisplayContent(r))}</div></td>`;
+    for(const p of ps){html+=`<td class="person-col"><input class="check" type="checkbox" data-person="${esc(p.name)}" ${r.checks[p.name]?'checked':''}></td>`}
+    html+='</tr>';
+  }
+  html+='</tbody>'; tbl.innerHTML=html;
+  tbl.querySelectorAll('.check').forEach(ch=>ch.onchange=e=>{
+    const step=Number(e.target.closest('tr').dataset.step);
+    const person=e.target.dataset.person;
+    if(e.target.checked){
+      rows().forEach(r=>{ if(Number(r.step)<=step) r.checks[person]=true; });
+    }else{
+      const r=rows().find(x=>x.step===step);
+      if(r) r.checks[person]=false;
+    }
+    save(); render();
+  });
+}
+function calcGroup(g){
+  const rs=state.groups[g].rows, ps=BASE[g].people; const total=rs.length*ps.length;
+  const done=rs.reduce((sum,r)=>sum+ps.filter(p=>r.checks[p.name]).length,0);
+  return {total,done,pct:total?Math.round(100*done/total):0};
+}
+function renderDashboard(){
+  const k=calcGroup('kucho'), c=calcGroup('conductor'), all={done:k.done+c.done,total:k.total+c.total}; all.pct=all.total?Math.round(100*all.done/all.total):0;
+  document.getElementById('overallStats').innerHTML=[['区長',k],['コンダクター',c],['全体',all]].map(([name,s])=>`<div class="stat"><span>${esc(tr(name))}</span><b>${s.pct}%</b><div class="bar"><i style="width:${s.pct}%"></i></div><span>${s.done}/${s.total}</span></div>`).join('');
+  const personHtml = Object.entries(BASE).map(([g,d])=>d.people.map(p=>{
+    const pct=pctForPerson(p.name,g); return `<div class="dash-row"><div><span class="dot" style="background:${p.color};display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px"></span>${esc(p.name)} <span class="muted">${tr(g==='kucho'?'区長':'コンダクター')}</span></div><div><b>${pct}%</b></div></div>`
+  }).join('')).join('');
+  document.getElementById('personStats').innerHTML=personHtml;
+  const catMap={};
+  for (const [g,d] of Object.entries(BASE)){
+    const ps=d.people;
+    for(const r of state.groups[g].rows){
+      const cat=r.category || '未分類';
+      catMap[cat] ||= {done:0,total:0};
+      catMap[cat].total += ps.length;
+      catMap[cat].done += ps.filter(p=>r.checks[p.name]).length;
+    }
+  }
+  document.getElementById('categoryStats').innerHTML=Object.entries(catMap).sort((a,b)=>a[0].localeCompare(b[0],'ja')).map(([cat,s])=>{
+    const pct=s.total?Math.round(100*s.done/s.total):0; return `<div class="cat-card"><b>${esc(tr(cat))}</b><div class="bar"><i style="width:${pct}%"></i></div><div class="muted">${s.done}/${s.total}・${pct}%</div></div>`
+  }).join('');
+}
+function setVisibleChecks(value){
+  const ps = currentPeople();
+  const rs = filteredRows();
+  if(!rs.length) return;
+  for(const r of rs){
+    for(const p of ps){ r.checks[p.name] = value; }
+  }
+  save();
+  render();
+}
+
+function applyViewMode(){
+  if(viewMode === 'admin' && sessionStorage.getItem('18trip-admin-ok') !== '1') viewMode = 'front';
+  const front = viewMode !== 'admin';
+  document.getElementById('frontToolbar')?.classList.toggle('hidden', !front);
+  document.getElementById('frontCard')?.classList.toggle('hidden', !front);
+  document.getElementById('adminCard')?.classList.toggle('hidden', front);
+}
+function renderAdminTable(){
+  const tbl=document.getElementById('adminTracker');
+  if(!tbl) return;
+  let html=`<thead><tr><th class="step">STEP</th><th class="cat">${esc(tr('カテゴリ'))}</th><th class="cond">${esc(tr('内容'))}</th><th class="person-col">${esc(tr('操作'))}</th></tr></thead><tbody>`;
+  for(const r of rows()){
+    html += `<tr data-step="${r.step}">`+
+      `<td class="step">${r.step}</td>`+
+      `<td class="cat"><input class="admin-input" data-field="category" value="${esc(r.category)}"></td>`+
+      `<td class="cond"><textarea class="admin-textarea" data-field="content">${esc(rowContent(r))}</textarea></td>`+
+      `<td class="admin-actions"><button class="danger delete-step" data-step="${r.step}">${esc(tr('削除'))}</button></td>`+
+    `</tr>`;
+  }
+  html += `</tbody>`;
+  tbl.innerHTML = html;
+  tbl.querySelectorAll('[data-field]').forEach(el=>{
+    el.oninput=()=>{
+      const step=Number(el.closest('tr').dataset.step);
+      const r=rows().find(x=>x.step===step);
+      if(!r) return;
+      if(el.dataset.field === 'content'){
+        const f = contentFieldForRow(r);
+        if(f === 'condition'){ r.condition = el.value; }
+        else { r.reward = el.value; if(!meaningful(r.condition)) r.condition = '—'; }
+      }else{
+        r[el.dataset.field]=el.value;
+      }
+      save();
+      updateCategoryOptions();
+      renderDashboard();
+    };
+  });
+  tbl.querySelectorAll('.delete-step').forEach(btn=>{
+    btn.onclick=()=>{
+      if(!confirm(tr('このSTEPを削除しますか？'))) return;
+      const step=Number(btn.dataset.step);
+      const idx=rows().findIndex(r=>Number(r.step)===step);
+      if(idx>=0) rows().splice(idx,1);
+      rows().forEach((r,i)=>r.step=i+1);
+      save();
+      render();
+    };
+  });
+}
+
+function render(){applyLanguageStatic();updateCategoryOptions();renderRolebar();renderTable();renderAdminTable();renderDashboard();applyViewMode();savePrefs();}
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+  group=t.dataset.group;
+  if(selectedPerson && !people().some(p=>p.name===selectedPerson)) selectedPerson=null;
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active', x.dataset.group===group));
+  savePrefs();
+  render();
+});
+['search','category','sort','onlyIncomplete'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{savePrefs();renderTable();renderDashboard();}));
+
+document.getElementById('menuBtn')?.addEventListener('click',()=>{document.getElementById('actionPanel')?.classList.toggle('open');});
+document.getElementById('langBtn')?.addEventListener('click',()=>{ currentLang = currentLang === 'zh' ? 'ja' : 'zh'; closeActionPanel(); savePrefs(); render(); });
+
+document.addEventListener('click',(e)=>{const panel=document.getElementById('actionPanel'), btn=document.getElementById('menuBtn'); if(panel && btn && !panel.contains(e.target) && !btn.contains(e.target)) panel.classList.remove('open');});
+function closeActionPanel(){document.getElementById('actionPanel')?.classList.remove('open');}
+document.getElementById('dashBtn').onclick=()=>{document.getElementById('drawer').classList.toggle('open');closeActionPanel();savePrefs();};
+document.getElementById('drawerCloseBtn')?.addEventListener('click',()=>{document.getElementById('drawer').classList.remove('open');savePrefs();});
+document.getElementById('adminCloseBtn')?.addEventListener('click',()=>{viewMode='front';savePrefs();render();});
+
+function requestAdminAccess(){
+  if(sessionStorage.getItem('18trip-admin-ok') === '1') return true;
+  const input = prompt(tr('データ管理のパスワードを入力してください。'));
+  if(input === ADMIN_PASSWORD){
+    sessionStorage.setItem('18trip-admin-ok','1');
+    return true;
+  }
+  if(input !== null) alert(tr('パスワードが違います。'));
+  return false;
+}
+document.getElementById('adminBtn').onclick=()=>{
+  if(viewMode !== 'admin' && !requestAdminAccess()) return;
+  viewMode = viewMode==='admin' ? 'front' : 'admin';
+  closeActionPanel();
+  savePrefs(); render();
+};
+document.getElementById('saveAdminBtn').onclick=()=>{save(); render(); alert(tr('データ反映済みです。'));};
+document.getElementById('addStepBtn').onclick=()=>{
+  const checks = Object.fromEntries(people().map(p=>[p.name,false]));
+  rows().push({step:rows().length+1, category:'', condition:'', reward:'', checks});
+  save(); render();
+};
+document.getElementById('resetRowsBtn').onclick=()=>{
+  if(!confirm(tr('現時点のカテゴリ・条件・報酬を初期状態に戻しますか？チェック状態は残します。'))) return;
+  const baseRows = BASE[group].rows;
+  rows().forEach(r=>{
+    const b = baseRows.find(x=>x.step===r.step);
+    if(b){ r.category=b.category; r.condition=b.condition; r.reward=b.reward; }
+  });
+  save(); render();
+};
+
+document.getElementById('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='18trip-kizunapp-tracker-backup.json'; a.click(); URL.revokeObjectURL(a.href);};
+document.getElementById('importFile').onchange=e=>{const file=e.target.files[0]; if(!file)return; const reader=new FileReader(); reader.onload=()=>{try{state=normalizeStateCategories(mergeState(JSON.parse(reader.result))); save(); render(); alert(tr('読み込みました。'));}catch(err){alert(tr('JSONを読み込めませんでした。'))}}; reader.readAsText(file);};
+document.getElementById('resetBtn').onclick=()=>{if(confirm(tr('チェック状態・編集内容・画面設定を初期状態に戻しますか？'))){localStorage.removeItem(KEY); localStorage.removeItem(PREF_KEY); state=freshState(); prefs={}; group='kucho'; selectedPerson=null; applyPrefs();
+selectedPerson=null; render();}};
+applyPrefs();
+selectedPerson = null;
+render();
+</script>
+
+</body>
+</html>
